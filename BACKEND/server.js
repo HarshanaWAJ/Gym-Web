@@ -1,4 +1,4 @@
-server.js
+// Server File
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -21,3 +21,4 @@ app.use('/api/products', productRoutes); // Use the product routes
 // Server Run 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
