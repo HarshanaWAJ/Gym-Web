@@ -1,6 +1,10 @@
+server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+
+// Import routes
+const productRoutes = require('./routes/productRoute');
 
 const connectDB = require('./configs/db'); // Import the connectDB function from db.js
 
@@ -12,7 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Import routes
+app.use('/api/products', productRoutes); // Use the product routes
 
 // Server Run 
 const PORT = process.env.PORT || 5000;
