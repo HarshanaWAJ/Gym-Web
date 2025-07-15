@@ -5,8 +5,10 @@ const cors = require('cors');
 
 // Import routes
 const productRoutes = require('./routes/productRoute');
+const authRoutes = require('./routes/authRoutes');
 
-const connectDB = require('./configs/db'); // Import the connectDB function from db.js
+// Import the connectDB function from db.js
+const connectDB = require('./configs/db'); 
 
 dotenv.config();
 
@@ -16,6 +18,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/auth', authRoutes) // Use the Auth Routes
 app.use('/api/products', productRoutes); // Use the product routes
 
 // Server Run 
