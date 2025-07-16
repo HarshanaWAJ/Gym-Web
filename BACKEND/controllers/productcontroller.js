@@ -59,3 +59,40 @@ exports.deleteProduct = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// Get Counts for Dashboards
+exports.getAllProductsCount = async (req, res) => {
+    try {
+        const allProcuctCount = await productSchema.countDocuments();
+        res.status(200).json({ allProcuctCount })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
+exports.getProductCountsByCategory = async (req, res) => {
+    try {
+        const counts = await productSchema.aggregate([
+            {
+                $group: {
+                    _id: "$category", // group by category field
+                    count: { $sum: 1 } // count each group
+                }
+            },
+            {
+                $project: {
+                    category: "$_id",
+                    count: 1,
+                    _id: 0
+                }
+            }
+        ]);
+
+        res.status(200).json({ counts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};

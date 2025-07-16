@@ -38,3 +38,15 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+// Get User Count
+exports.getAllUserCount = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.status(200).json({ userCount })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message })
+  }
+}
