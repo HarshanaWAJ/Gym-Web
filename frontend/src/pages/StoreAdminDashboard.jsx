@@ -88,12 +88,13 @@ function StoreAdminDashboard() {
     <div>
       <StoreAdminSidebar />
       <div style={dashboardContentStyle}>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h4" gutterBottom>
           Store Admin Dashboard
         </Typography>
 
         <div
             style={{
+                marginTop: '2rem',
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: '20px',  // space between cards
