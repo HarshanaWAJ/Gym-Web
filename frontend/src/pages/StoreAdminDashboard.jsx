@@ -8,6 +8,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import CategoryIcon from '@mui/icons-material/Category';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 
 function StoreAdminDashboard() {
@@ -16,6 +17,7 @@ function StoreAdminDashboard() {
   const [productCount, setProductCount] = useState(null);
   const [productCategoryCount, setProductCategoryCount] = useState(null);
   const [sellsCount, setSellsCount] = useState(null);
+  const [draftCount, setDraftCount] = useState(null);
 
   const dashboardContentStyle = {
     padding: '20px',
@@ -65,6 +67,17 @@ function StoreAdminDashboard() {
         }
     }
 
+    // Get Draft Count
+    const fetchDraftCount = async () => {
+        try {
+            const response = await axiosInstant.get('/cart/get-draft-count')
+            setDraftCount(response.data);
+        } catch (error) {
+            console.error('Failed to fetch draft count', error);
+        }
+    }
+
+    fetchDraftCount();
     fetchSellsCount();
     fetchProductsCountByCategory();
     fetchUserCount();
@@ -231,6 +244,43 @@ function StoreAdminDashboard() {
                 sx={{ fontWeight: '700', color: '#0d47a1', letterSpacing: '0.05em' }}
                 >
                 {sellsCount !== null ? sellsCount : 'Loading...'}
+                </Typography>
+            </CardContent>
+            </Card>
+
+            {/* Draft Count Card */}
+            <Card
+            sx={{
+                width: 250,
+                display: 'flex',
+                alignItems: 'center',
+                padding: 3,
+                mb: 3,
+                borderRadius: 3,
+                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
+                background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+                cursor: 'default',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                '&:hover': {
+                boxShadow: '0 8px 20px rgba(25, 118, 210, 0.4)',
+                transform: 'translateY(-4px)',
+                },
+            }}
+            >
+            <DescriptionIcon sx={{ fontSize: 48, color: '#1976d2', mr: 3 }} />
+            <CardContent sx={{ padding: 0 }}>
+                <Typography
+                variant="subtitle1"
+                color="textSecondary"
+                sx={{ fontWeight: '500', mb: 0.5 }}
+                >
+                Draft Orders
+                </Typography>
+                <Typography
+                variant="h4"
+                sx={{ fontWeight: '700', color: '#0d47a1', letterSpacing: '0.05em' }}
+                >
+                {draftCount !== null ? draftCount : 'Loading...'}
                 </Typography>
             </CardContent>
             </Card>

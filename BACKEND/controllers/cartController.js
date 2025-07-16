@@ -153,3 +153,12 @@ exports.getSellsCartCount = async (req, res) => {
       res.status(500).json({ error: err.message })
     }
 }
+
+exports.getDraftCartCount = async (req, res) => {
+    try {
+      const draftCartCount = await cartModel.countDocuments({ status: 'draft' });
+      res.status(200).json(draftCartCount)
+    } catch (error) {
+      res.status(500).json({ error: err.message })
+    }
+}
