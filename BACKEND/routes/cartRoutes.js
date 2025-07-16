@@ -5,6 +5,7 @@ const auth = require('../middlewares/authMiddleware'); // assuming JWT auth midd
 
 router.get('/', auth, cartController.getCart);
 router.post('/add', auth, cartController.addToCart);
+router.get('/get-sells-count', cartController.getSellsCartCount);
 router.delete('/remove/:cartId', auth, cartController.removeFromCart);
 router.put('/update/:cartId', auth, cartController.updateCart);
 

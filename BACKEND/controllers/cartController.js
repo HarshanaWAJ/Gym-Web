@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
+const cartModel = require('../models/cartModel');
 
 // Get cart for a user
 exports.getCart = async (req, res) => {
@@ -143,3 +144,12 @@ exports.updateCart = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getSellsCartCount = async (req, res) => {
+    try {
+      const sellsCartCount = await cartModel.countDocuments({ status: 'completed' });
+      res.status(200).json(sellsCartCount)
+    } catch (error) {
+      res.status(500).json({ error: err.message })
+    }
+}
