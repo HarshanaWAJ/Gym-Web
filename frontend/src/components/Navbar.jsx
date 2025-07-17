@@ -67,6 +67,7 @@ const navStyle = {
 };
 
 const logoStyle = {
+  marginLeft: '2rem',
   fontSize: '1.5rem',
   color: '#fff',
   textDecoration: 'none',
