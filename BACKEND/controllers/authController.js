@@ -39,7 +39,6 @@ exports.login = async (req, res) => {
   }
 };
 
-
 // Get User Count
 exports.getAllUserCount = async (req, res) => {
   try {
