@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
+
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Navbar from './components/Navbar';
 import StoreAdminDashboard from './pages/StoreAdminDashboard';
-import UserDashboard from './pages/UserDashboard'; // Add this page if you haven't
+import UserDashboard from './pages/UserDashboard';
+import ProductManagement from './pages/ProductManagement';
 
 const AppRoutes = () => {
   const location = useLocation();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -18,6 +27,7 @@ const AppRoutes = () => {
 
     setIsAuthenticated(!!token);
     setUserRole(user?.role || null);
+    setLoading(false); // Only render routes after checking
   }, [location]);
 
   const getDashboardRoute = () => {
@@ -25,6 +35,10 @@ const AppRoutes = () => {
     if (userRole === 'user') return '/user-dashboard';
     return '/login';
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Prevent routes from rendering during auth check
+  }
 
   return (
     <>
@@ -81,6 +95,18 @@ const AppRoutes = () => {
           element={
             isAuthenticated && userRole === 'user' ? (
               <UserDashboard />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* Product Management - Admin only */}
+        <Route
+          path="/admin-product-management"
+          element={
+            isAuthenticated && userRole === 'admin' ? (
+              <ProductManagement />
             ) : (
               <Navigate to="/login" />
             )

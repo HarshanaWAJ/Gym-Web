@@ -41,7 +41,8 @@ function StoreAdminDashboard() {
     const fetchProductCount = async () => {
         try {
             const response = await axiosInstant.get('/products/get-product-count')
-            setProductCount(response.data.allProcuctCount);
+            setProductCount(response.data.allProductCount);
+            
         } catch (error) {
             console.error('Failed to fetch user count:', error);
         }
@@ -170,7 +171,7 @@ function StoreAdminDashboard() {
                 variant="h4"
                 sx={{ fontWeight: '700', color: '#0d47a1', letterSpacing: '0.05em' }}
                 >
-                {userCount !== null ? productCount : 'Loading...'}
+                {productCount !== null ? productCount : 'Loading...'}
                 </Typography>
             </CardContent>
             </Card>
@@ -201,7 +202,7 @@ function StoreAdminDashboard() {
                 color="textSecondary"
                 sx={{ fontWeight: '500', mb: 0.5 }}
                 >
-                Product Categories
+                Categories
                 </Typography>
                 <Typography
                 variant="h4"
