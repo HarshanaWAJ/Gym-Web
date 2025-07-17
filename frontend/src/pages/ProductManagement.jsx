@@ -12,6 +12,8 @@ import UpdateProductModal from './forms/UpdateProductModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Swal from 'sweetalert2';
+
 
 function ProductManagement() {
   const sidebarWidth = 200;
@@ -43,17 +45,27 @@ function ProductManagement() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-        try {
-            await axiosInstance.delete(`/products/delete/${id}`);
-            // Use functional update
-            setProducts(prev => prev.filter(product => product._id !== id));
-            toast.success('Product deleted successfully!');
-        } catch (error) {
-            console.error('Error deleting product:', error);
-            toast.error('Failed to delete product.');
-        }
-    };
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action cannot be undone!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axiosInstance.delete(`/products/delete/${id}`);
+        setProducts(prev => prev.filter(product => product._id !== id));
+        Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        Swal.fire('Error', 'Failed to delete product.', 'error');
+      }
+    }
+  };
 
   const handleEdit = (product) => {
     setProductToUpdate(product);
