@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    catrgory:{
+    category:{
         type: String,
         required: true,
     },
@@ -31,11 +31,10 @@ const productSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
-    img_url: {
-        type: String,
-        required: true,
+    img: {
+        data: Buffer,
+        contentType: String
     },
-
 })
 
 module.exports = mongoose.model('Product', productSchema);
