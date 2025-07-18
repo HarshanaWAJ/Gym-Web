@@ -19,6 +19,8 @@ const Login = () => {
       const res = await loginUser({ email, password });
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.user));
+      console.log("Logged User Details: ", res.user);
+      
       
       toast.success('Login Successful!');
       if (res.user.role === 'admin') {

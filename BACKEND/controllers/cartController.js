@@ -17,8 +17,7 @@ exports.getCart = async (req, res) => {
 
 // Add item(s) to cart
 exports.addToCart = async (req, res) => {
-  const userId = req.user._id;
-  const { items } = req.body; // Expecting array of { product, quantity }
+  const { userId, items, value  } = req.body; // Expecting array of { product, quantity }
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items array is required and cannot be empty.' });
@@ -43,7 +42,7 @@ exports.addToCart = async (req, res) => {
     }
 
     // Save the Cart Details
-    const cart = new Cart({ user: userId, items: [], status: 'draft' });
+    const cart = new Cart({ user: userId, items: [], status: 'draft', value: value });
 
     for (const item of items) {
       const { product, quantity } = item;

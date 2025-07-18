@@ -27,6 +27,10 @@ const cartSchema = new mongoose.Schema ({
         default: 'draft',
     },
     items: [catItemSchema],
+    value: {
+        type: Number,
+        required: true
+    }
 }, 
 {
     timestamps: true, // Created At and Updated At fields
