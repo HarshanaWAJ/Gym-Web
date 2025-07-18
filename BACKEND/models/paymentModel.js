@@ -17,6 +17,10 @@ const paymentSchema = mongoose.Schema ({
     card_number: {
         type: String,
         required: true
+    },
+    exp_date: {
+        type: String,
+        required: true
     }
 })
 module.exports = mongoose.model('Payment', paymentSchema);

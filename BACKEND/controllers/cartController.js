@@ -99,31 +99,32 @@ exports.updateCart = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    if (!Array.isArray(items)) {
-      return res.status(400).json({ error: 'Items must be an array.' });
-    }
-
-    cart.items = []; // Clear current items
-
-    for (const item of items) {
-      if (!mongoose.Types.ObjectId.isValid(item.product)) {
-        return res.status(400).json({ error: `Invalid product ID: ${item.product}` });
+    if (items !== undefined) {
+      if (!Array.isArray(items)) {
+        return res.status(400).json({ error: 'Items must be an array.' });
       }
 
-      if (typeof item.quantity !== 'number' || item.quantity <= 0) {
-        return res.status(400).json({ error: `Invalid quantity for product ${item.product}` });
-      }
+      cart.items = []; // Clear current items
 
-      // Optional: check if product exists
-      const exists = await Product.exists({ _id: item.product });
-      if (!exists) {
-        return res.status(404).json({ error: `Product not found: ${item.product}` });
-      }
+      for (const item of items) {
+        if (!mongoose.Types.ObjectId.isValid(item.product)) {
+          return res.status(400).json({ error: `Invalid product ID: ${item.product}` });
+        }
 
-      cart.items.push({
-        product: item.product,
-        quantity: item.quantity,
-      });
+        if (typeof item.quantity !== 'number' || item.quantity <= 0) {
+          return res.status(400).json({ error: `Invalid quantity for product ${item.product}` });
+        }
+
+        const exists = await Product.exists({ _id: item.product });
+        if (!exists) {
+          return res.status(404).json({ error: `Product not found: ${item.product}` });
+        }
+
+        cart.items.push({
+          product: item.product,
+          quantity: item.quantity,
+        });
+      }
     }
 
     if (status) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -24,23 +24,26 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CartIcon from "@mui/icons-material/ShoppingBag";
 
-import axiosInstance from "../../api/axiosInstance"; 
+import axiosInstance from "../../api/axiosInstance";
+import PaymentModal from "./PaymentModal"; // Import PaymentModal
 
 function CartModal({ open, handleClose, products }) {
-    const navigate = useNavigate();
-    const [cartItems, setCartItems] = useState([]);
-    const [quantities, setQuantities] = useState({});
-    const [confirmClear, setConfirmClear] = useState(false);
+  const navigate = useNavigate();
+  const [cartItems, setCartItems] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [cartId, setCartId] = useState(null);
 
   const getUserId = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     return user?.id;
   };
 
-  const getCartKey = () => {
+  const getCartKey = useCallback(() => {
     const userId = getUserId();
     return userId ? `cart_${userId}` : null;
-  };
+  }, []);
 
   const saveCart = (items) => {
     const cartKey = getCartKey();
@@ -86,7 +89,7 @@ function CartModal({ open, handleClose, products }) {
       setCartItems([]);
       setQuantities({});
     }
-  }, [open, products]);
+  }, [open, products, getCartKey]);
 
   const updateCartItems = (newItems) => {
     setCartItems(newItems);
@@ -167,7 +170,7 @@ function CartModal({ open, handleClose, products }) {
 
   const getTotal = () => cartItems.reduce((sum, item) => sum + item.total, 0);
 
-  // ---- New: Send cart data to backend ----
+  // Checkout: send cart to backend and open payment modal
   const handleCheckout = async () => {
     try {
       const userId = getUserId();
@@ -183,22 +186,24 @@ function CartModal({ open, handleClose, products }) {
           quantity: item.quantity,
         })),
         value: getTotal(),
-        status: "payed",
+        status: "confirmed",
       };
 
       const response = await axiosInstance.post("/cart/add", payload);
       console.log("Checkout success:", response.data);
 
-      // Clear cart and close modal after successful checkout
-      handleClearCart();
-      handleClose();
-      navigate("/user-payment");
-
-      // Optionally show success notification here
+      setCartId(response.data._id); // save cart ID for payment
+      setPaymentModalOpen(true);
     } catch (error) {
       console.error("Checkout error:", error);
-      // Optionally show error notification here
     }
+  };
+
+  const handleConfirmPayment = () => {
+    setPaymentModalOpen(false);
+    handleClearCart();
+    handleClose();
+    navigate("/user-dashboard");
   };
 
   return (
@@ -289,13 +294,18 @@ function CartModal({ open, handleClose, products }) {
                           {item.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Price: ${item.price.toFixed(2)} | Quantity: {item.quantity}
+                          Price: ${item.price.toFixed(2)} | Quantity:{" "}
+                          {item.quantity}
                         </Typography>
                       </Grid>
 
                       <Grid item xs={12} sm={4}>
                         <Stack spacing={1}>
-                          <Stack direction="row" spacing={1} alignItems="center">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                          >
                             <IconButton
                               size="small"
                               onClick={() => decrementQty(item.productId)}
@@ -319,13 +329,20 @@ function CartModal({ open, handleClose, products }) {
                             <IconButton
                               size="small"
                               onClick={() => incrementQty(item.productId)}
-                              disabled={(quantities[item.productId] || 1) >= item.quantity}
+                              disabled={
+                                (quantities[item.productId] || 1) >=
+                                item.quantity
+                              }
                             >
                               <AddIcon fontSize="small" />
                             </IconButton>
                           </Stack>
 
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            justifyContent="flex-end"
+                          >
                             <Button
                               variant="outlined"
                               size="small"
@@ -373,40 +390,51 @@ function CartModal({ open, handleClose, products }) {
             <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold" }}>
               Total: ${getTotal().toFixed(2)}
             </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Button
-                color="error"
-                onClick={() => setConfirmClear(true)}
-                variant="outlined"
-              >
-                Clear Cart
-              </Button>
-              <Button onClick={handleClose} variant="outlined">
-                Close
-              </Button>
-              <Button variant="contained" color="primary" onClick={handleCheckout}>
-                Checkout
-              </Button>
-            </Stack>
+
+            {!confirmClear ? (
+              <>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setConfirmClear(true)}
+                  sx={{ mr: 1 }}
+                >
+                  Clear Cart
+                </Button>
+                <Button variant="contained" onClick={handleCheckout}>
+                  Checkout
+                </Button>
+              </>
+            ) : (
+              <>
+                <DialogContentText>
+                  Are you sure you want to clear the cart?
+                </DialogContentText>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleClearCart}
+                  sx={{ mr: 1 }}
+                >
+                  Yes
+                </Button>
+                <Button variant="outlined" onClick={() => setConfirmClear(false)}>
+                  No
+                </Button>
+              </>
+            )}
           </DialogActions>
         )}
       </Dialog>
 
-      <Dialog open={confirmClear} onClose={() => setConfirmClear(false)}>
-        <DialogTitle>Clear Cart</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to clear all items from your cart? This action
-            cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmClear(false)}>Cancel</Button>
-          <Button color="error" onClick={handleClearCart} variant="contained">
-            Clear
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Payment modal */}
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        totalAmount={getTotal()}
+        cartId={cartId}
+        onPaymentSuccess={handleConfirmPayment}
+      />
     </>
   );
 }

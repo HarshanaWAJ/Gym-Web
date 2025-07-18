@@ -4,13 +4,14 @@ class PaymentController {
   // Create a new payment
   static async createPayment(req, res) {
     try {
-      const { cart, payment, card_holder, card_number } = req.body;
+      const { cart, payment, card_holder, card_number, exp_date } = req.body;
       
       const newPayment = new Payment({
         cart,
         payment,
         card_holder,
-        card_number
+        card_number,
+        exp_date
       });
 
       const savedPayment = await newPayment.save();
