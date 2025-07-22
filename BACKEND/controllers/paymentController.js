@@ -1,5 +1,8 @@
 const Payment = require('../models/paymentModel');
 
+// Use for fetch purchase history of user
+const Cart = require('../models/cartModel');
+
 class PaymentController {
   // Create a new payment
   static async createPayment(req, res) {
@@ -67,10 +70,22 @@ class PaymentController {
   // Get all payments
   static async getAllPayments(req, res) {
     try {
-      const payments = await Payment.find().populate('cart');
+      const payments = await Payment.find()
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: error.message });
+    }
+  }
+
+  static async getPaymentByUserId(req, res) {
+    try {
+      const userId = req.params.userId;
+      const carts = await Cart.find({ user: userId });
+      const cartIds = carts.map(cart => cart._id);
+      const payments = await Payment.find({ cart: { $in: cartIds } });
+      res.status(200).json(payments);
+    } catch (error) {
+       res.status(500).json({ message: error.message });
     }
   }
 }

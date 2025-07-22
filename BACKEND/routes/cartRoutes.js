@@ -4,6 +4,7 @@ const cartController = require('../controllers/cartController');
 const auth = require('../middlewares/authMiddleware'); // assuming JWT auth middleware
 
 router.get('/', auth, cartController.getCart);
+router.get('/draft-orders', cartController.getDraftCarts);
 router.post('/add', auth, cartController.addToCart);
 router.get('/get-sells-count', cartController.getSellsCartCount);
 router.get('/get-draft-count', cartController.getDraftCartCount);

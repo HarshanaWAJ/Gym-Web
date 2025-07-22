@@ -7,5 +7,6 @@ router.get('/get/:id', PaymentController.getPaymentById);
 router.put('/update/:id', PaymentController.updatePayment);
 router.delete('/delete/:id', PaymentController.deletePayment);
 router.get('/', PaymentController.getAllPayments);
+router.get('/purchase-history/:userId', PaymentController.getPaymentByUserId);
 
 module.exports = router;

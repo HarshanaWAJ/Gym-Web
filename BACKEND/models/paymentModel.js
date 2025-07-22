@@ -22,5 +22,9 @@ const paymentSchema = mongoose.Schema ({
         type: String,
         required: true
     }
-})
+},
+{
+    timestamps: true, // Created At and Updated At fields
+}
+)
 module.exports = mongoose.model('Payment', paymentSchema);

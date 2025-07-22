@@ -23,9 +23,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CartIcon from "@mui/icons-material/ShoppingBag";
-
 import axiosInstance from "../../api/axiosInstance";
-import PaymentModal from "./PaymentModal"; // Import PaymentModal
+import PaymentModal from "./PaymentModal";
 
 function CartModal({ open, handleClose, products }) {
   const navigate = useNavigate();
@@ -34,6 +33,7 @@ function CartModal({ open, handleClose, products }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cartId, setCartId] = useState(null);
+  const [checkoutTotal, setCheckoutTotal] = useState(0); // ✅ NEW STATE
 
   const getUserId = () => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -48,7 +48,6 @@ function CartModal({ open, handleClose, products }) {
   const saveCart = (items) => {
     const cartKey = getCartKey();
     if (!cartKey) return;
-
     const cartData = {
       items: items.map((i) => ({ product: i.productId, quantity: i.quantity })),
     };
@@ -57,16 +56,14 @@ function CartModal({ open, handleClose, products }) {
 
   useEffect(() => {
     if (!open) return;
-
     const cartKey = getCartKey();
     if (!cartKey) {
       setCartItems([]);
       setQuantities({});
       return;
     }
-
     const storedCart = JSON.parse(localStorage.getItem(cartKey));
-    if (storedCart && storedCart.items) {
+    if (storedCart?.items) {
       const enrichedItems = storedCart.items.map((item) => {
         const product = products.find((p) => p._id === item.product);
         return {
@@ -79,7 +76,6 @@ function CartModal({ open, handleClose, products }) {
         };
       });
       setCartItems(enrichedItems);
-
       const initialQuantities = {};
       enrichedItems.forEach((i) => {
         initialQuantities[i.productId] = 1;
@@ -136,17 +132,15 @@ function CartModal({ open, handleClose, products }) {
       const updated = cartItems.filter((i) => i.productId !== productId);
       updateCartItems(updated);
     } else {
-      const updated = cartItems.map((i) => {
-        if (i.productId === productId) {
-          const newQty = i.quantity - amountToRemove;
-          return {
-            ...i,
-            quantity: newQty,
-            total: i.price * newQty,
-          };
-        }
-        return i;
-      });
+      const updated = cartItems.map((i) =>
+        i.productId === productId
+          ? {
+              ...i,
+              quantity: i.quantity - amountToRemove,
+              total: i.price * (i.quantity - amountToRemove),
+            }
+          : i
+      );
       updateCartItems(updated);
     }
     setQuantities((prev) => ({ ...prev, [productId]: 1 }));
@@ -170,30 +164,25 @@ function CartModal({ open, handleClose, products }) {
 
   const getTotal = () => cartItems.reduce((sum, item) => sum + item.total, 0);
 
-  // Checkout: send cart to backend and open payment modal
   const handleCheckout = async () => {
     try {
       const userId = getUserId();
-      if (!userId) {
-        console.error("User not logged in");
-        return;
-      }
-
+      if (!userId) return;
+      const total = getTotal(); // ✅ Capture total before clearing
       const payload = {
         userId,
         items: cartItems.map((item) => ({
           product: item.productId,
           quantity: item.quantity,
         })),
-        value: getTotal(),
+        value: total,
         status: "confirmed",
       };
-
       const response = await axiosInstance.post("/cart/add", payload);
-      console.log("Checkout success:", response.data);
-
-      setCartId(response.data._id); // save cart ID for payment
+      setCartId(response.data._id);
+      setCheckoutTotal(total); // ✅ Save total to pass to modal
       setPaymentModalOpen(true);
+      handleClearCart();
     } catch (error) {
       console.error("Checkout error:", error);
     }
@@ -208,38 +197,23 @@ function CartModal({ open, handleClose, products }) {
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        maxWidth="sm"
-        fullWidth
-        sx={{ "& .MuiDialog-paper": { maxHeight: "90vh" } }}
-      >
-        <DialogTitle
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            p: 2,
-          }}
-        >
-          <Stack direction="row" spacing={1} alignItems="center">
-            <CartIcon />
-            <Typography variant="h6">Your Cart</Typography>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CartIcon />
+              <Typography variant="h6">Your Cart</Typography>
+            </Stack>
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
           </Stack>
-          <IconButton onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
         </DialogTitle>
 
         <DialogContent dividers>
           {cartItems.length === 0 ? (
             <Box textAlign="center" py={6} color="text.secondary">
-              <Typography variant="h6" gutterBottom>
-                Your cart is empty
-              </Typography>
+              <Typography variant="h6">Your cart is empty</Typography>
               <Typography variant="body2" mb={2}>
                 Browse products and add them to your cart.
               </Typography>
@@ -251,117 +225,81 @@ function CartModal({ open, handleClose, products }) {
             <List disablePadding>
               {cartItems.map((item) => (
                 <React.Fragment key={item.productId}>
-                  <ListItem sx={{ py: 2, alignItems: "flex-start" }}>
+                  <ListItem>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={2}>
+                      <Grid item xs={2}>
                         {item.image ? (
                           <Box
                             component="img"
                             src={item.image}
                             alt={item.name}
-                            sx={{
-                              width: 64,
-                              height: 64,
-                              borderRadius: 1,
-                              objectFit: "cover",
-                              border: "1px solid",
-                              borderColor: "divider",
-                            }}
+                            sx={{ width: 64, height: 64, borderRadius: 1 }}
                           />
                         ) : (
                           <Box
                             sx={{
                               width: 64,
                               height: 64,
-                              borderRadius: 1,
                               bgcolor: "grey.300",
                               display: "flex",
-                              justifyContent: "center",
                               alignItems: "center",
-                              color: "grey.600",
+                              justifyContent: "center",
                               fontSize: 12,
-                              border: "1px solid",
-                              borderColor: "divider",
                             }}
                           >
                             No Image
                           </Box>
                         )}
                       </Grid>
-
-                      <Grid item xs={12} sm={6}>
-                        <Typography variant="subtitle1" fontWeight="medium">
-                          {item.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Price: ${item.price.toFixed(2)} | Quantity:{" "}
-                          {item.quantity}
+                      <Grid item xs={6}>
+                        <Typography>{item.name}</Typography>
+                        <Typography variant="body2">
+                          ${item.price.toFixed(2)} x {item.quantity}
                         </Typography>
                       </Grid>
-
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={4}>
                         <Stack spacing={1}>
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            alignItems="center"
-                          >
+                          <Stack direction="row" alignItems="center" spacing={1}>
                             <IconButton
                               size="small"
                               onClick={() => decrementQty(item.productId)}
                               disabled={(quantities[item.productId] || 1) <= 1}
                             >
-                              <RemoveIcon fontSize="small" />
+                              <RemoveIcon />
                             </IconButton>
                             <TextField
                               size="small"
-                              variant="outlined"
                               value={quantities[item.productId] || 1}
-                              onChange={(e) =>
-                                handleQtyChange(item.productId, e.target.value)
-                              }
-                              inputProps={{
-                                style: { textAlign: "center", width: 40 },
-                                min: 1,
-                                max: item.quantity,
-                              }}
+                              onChange={(e) => handleQtyChange(item.productId, e.target.value)}
+                              inputProps={{ style: { textAlign: "center", width: 40 } }}
                             />
                             <IconButton
                               size="small"
                               onClick={() => incrementQty(item.productId)}
-                              disabled={
-                                (quantities[item.productId] || 1) >=
-                                item.quantity
-                              }
+                              disabled={(quantities[item.productId] || 1) >= item.quantity}
                             >
-                              <AddIcon fontSize="small" />
+                              <AddIcon />
                             </IconButton>
                           </Stack>
-
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            justifyContent="flex-end"
-                          >
+                          <Stack direction="row" justifyContent="flex-end" spacing={1}>
                             <Button
-                              variant="outlined"
                               size="small"
                               onClick={() => handleRemoveQty(item.productId)}
+                              variant="outlined"
                             >
                               Remove
                             </Button>
-                            <Tooltip title="Remove item completely">
+                            <Tooltip title="Remove Item">
                               <IconButton
                                 size="small"
-                                color="error"
                                 onClick={() => handleRemoveItem(item.productId)}
+                                color="error"
                               >
                                 <DeleteIcon />
                               </IconButton>
                             </Tooltip>
                           </Stack>
-
-                          <Typography variant="subtitle2" textAlign="right">
+                          <Typography align="right">
                             Total: ${item.total.toFixed(2)}
                           </Typography>
                         </Stack>
@@ -376,29 +314,11 @@ function CartModal({ open, handleClose, products }) {
         </DialogContent>
 
         {cartItems.length > 0 && (
-          <DialogActions
-            sx={{
-              borderTop: "1px solid",
-              borderColor: "divider",
-              px: 3,
-              py: 2,
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold" }}>
-              Total: ${getTotal().toFixed(2)}
-            </Typography>
-
+          <DialogActions sx={{ justifyContent: "space-between", p: 2 }}>
+            <Typography variant="h6">Total: ${getTotal().toFixed(2)}</Typography>
             {!confirmClear ? (
               <>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => setConfirmClear(true)}
-                  sx={{ mr: 1 }}
-                >
+                <Button variant="outlined" color="error" onClick={() => setConfirmClear(true)}>
                   Clear Cart
                 </Button>
                 <Button variant="contained" onClick={handleCheckout}>
@@ -407,15 +327,8 @@ function CartModal({ open, handleClose, products }) {
               </>
             ) : (
               <>
-                <DialogContentText>
-                  Are you sure you want to clear the cart?
-                </DialogContentText>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={handleClearCart}
-                  sx={{ mr: 1 }}
-                >
+                <DialogContentText>Clear entire cart?</DialogContentText>
+                <Button variant="contained" color="error" onClick={handleClearCart}>
                   Yes
                 </Button>
                 <Button variant="outlined" onClick={() => setConfirmClear(false)}>
@@ -427,11 +340,10 @@ function CartModal({ open, handleClose, products }) {
         )}
       </Dialog>
 
-      {/* Payment modal */}
       <PaymentModal
         open={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        totalAmount={getTotal()}
+        totalAmount={checkoutTotal} // ✅ Use captured total
         cartId={cartId}
         onPaymentSuccess={handleConfirmPayment}
       />
