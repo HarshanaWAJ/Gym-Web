@@ -18,7 +18,7 @@ const Sidebar = () => {
         <h2>Store Panel</h2>
         <a href="/admin-dashboard">Summary</a>
         <a href="/admin-product-management">Products</a>
-        <a href="#sales">Sales</a>
+        <a href="/admin-sale-summary">Sales</a>
       </div>
     </>
   );

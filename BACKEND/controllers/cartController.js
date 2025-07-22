@@ -145,14 +145,6 @@ exports.updateCart = async (req, res) => {
   }
 };
 
-exports.getSellsCartCount = async (req, res) => {
-    try {
-      const sellsCartCount = await cartModel.countDocuments({ status: 'completed' });
-      res.status(200).json(sellsCartCount)
-    } catch (error) {
-      res.status(500).json({ error: err.message })
-    }
-}
 
 exports.getDraftCartCount = async (req, res) => {
     try {

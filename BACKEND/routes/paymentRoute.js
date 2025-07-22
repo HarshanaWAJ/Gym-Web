@@ -8,5 +8,6 @@ router.put('/update/:id', PaymentController.updatePayment);
 router.delete('/delete/:id', PaymentController.deletePayment);
 router.get('/', PaymentController.getAllPayments);
 router.get('/purchase-history/:userId', PaymentController.getPaymentByUserId);
+router.get('/get-sells-count', PaymentController.getSellsCount);
 
 module.exports = router;

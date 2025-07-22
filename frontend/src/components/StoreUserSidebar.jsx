@@ -17,7 +17,7 @@ const Sidebar = () => {
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <h2>User Panel</h2>
         <a href="/user-dashboard">Store</a>
-        <a href="/user-product-summary">Purchase History</a>
+        <a href="/user-purchase-summary">Purchase History</a>
       </div>
     </>
   );

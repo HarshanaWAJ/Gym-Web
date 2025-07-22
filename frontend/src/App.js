@@ -13,6 +13,8 @@ import Navbar from './components/Navbar';
 import StoreAdminDashboard from './pages/StoreAdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import ProductManagement from './pages/ProductManagement';
+import PurchaseHistory from './pages/PurchaseHistory';
+import SalesSummary from './pages/SalesHistory';
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -107,6 +109,30 @@ const AppRoutes = () => {
           element={
             isAuthenticated && userRole === 'admin' ? (
               <ProductManagement />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* Purchase History Route */}
+        <Route
+          path="/user-purchase-summary"
+          element={
+            isAuthenticated && userRole === 'user' ? (
+              <PurchaseHistory />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* Sale History Route */}
+        <Route
+          path="/admin-sale-summary"
+          element={
+            isAuthenticated && userRole === 'admin' ? (
+              <SalesSummary />
             ) : (
               <Navigate to="/login" />
             )

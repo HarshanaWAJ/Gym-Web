@@ -61,8 +61,8 @@ function StoreAdminDashboard() {
     // Get Sells Count
     const fetchSellsCount = async () => {
         try {
-            const response = await axiosInstant.get('/cart/get-sells-count')
-            setSellsCount(response.data);
+            const response = await axiosInstant.get('/payment/get-sells-count')
+            setSellsCount(response.data.sellsCount);
         } catch (error) {
             console.error('Failed to fetch sells count', error);
         }

@@ -88,6 +88,16 @@ class PaymentController {
        res.status(500).json({ message: error.message });
     }
   }
+
+  // Sells Count
+  static async getSellsCount(req, res) {
+    try {
+      const sellsCount = await Payment.countDocuments();  
+      res.status(200).json({ sellsCount });              
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 module.exports = PaymentController;
